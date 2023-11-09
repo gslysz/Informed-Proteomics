@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using InformedProteomics.Backend.Data.Biology;
 using InformedProteomics.Backend.Data.Composition;
@@ -401,6 +403,40 @@ namespace InformedProteomics.Tests.FunctionalTests
             sw.Stop();
 
             Console.WriteLine("{0:f4} sec", sw.Elapsed.TotalSeconds);
+        }
+
+        [Test]
+        public void TempTest1()
+        {
+            var testRawFilePath = TestRawFilePath;
+            //testRawFilePath = @"T:\Data\NIST mAb Digest.pbf";
+            //testRawFilePath = @"T:\Data\SynPep3.d";
+            testRawFilePath = @"T:\Data\enolase-Chip-final.pbf";
+
+            //LcMsRun run2 = InMemoryLcMsRun.GetLcMsRun(testRawFilePath);
+            var run2 = PbfLcMsRun.GetLcMsRun(testRawFilePath);
+
+            List<double> targetMzList = new List<double> {625.98, 476.774, 477.2741, 477.7743, 713.6806};
+
+            var ms = run2.ReadMassSpectrum(1000);
+
+
+            Stopwatch watch = Stopwatch.StartNew();
+
+            foreach (var d in targetMzList)
+            {
+                var vec1 = run2.GetFullPrecursorIonExtractedIonChromatogram(d - 0.5, d + 0.5);
+                var elapsed = watch.Elapsed.TotalMilliseconds;
+
+                using (StreamWriter writer = new StreamWriter($"c:\\Temp\\Agilent\\Eic_{d.ToString().PadLeft(6, '0')}.txt"))
+                {
+                    Console.WriteLine($"m/z= {d} (+/- 0.01) - EIC took {elapsed:F2} ms. numPoints={vec1.Count(p => p.Mz > 0)};  sumIntensities = {vec1.GetSumIntensities():F1}");
+                    foreach (XicPoint point in vec1)
+                        writer.WriteLine($"{point.ScanNum}\t{point.Intensity}\t{point.Mz}");
+                }
+
+                watch.Restart();
+            }
         }
 
         [Test]

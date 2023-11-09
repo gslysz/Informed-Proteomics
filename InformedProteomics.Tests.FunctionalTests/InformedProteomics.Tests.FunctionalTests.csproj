@@ -53,6 +53,7 @@
     <Compile Include="TestOffsetFrequencyFunction.cs" />
     <Compile Include="TestPbfLcMsRun.cs" />
     <Compile Include="TestProteinMassBining.cs" />
+    <Compile Include="TestReadingAgilent.cs" />
     <Compile Include="TestReadingMsgfPlusResults.cs" />
     <Compile Include="TestReadingProMex.cs" />
     <Compile Include="TestSequenceGraph.cs" />

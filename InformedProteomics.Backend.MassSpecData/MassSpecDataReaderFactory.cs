@@ -43,6 +43,9 @@ namespace InformedProteomics.Backend.MassSpecData
                 case MassSpecDataType.DeconvolutedPbfFile:
                     reader = new DPbfLcMsRun(filePath);
                     break;
+                case MassSpecDataType.AgilentD:
+                    reader = new AgilentReader(filePath);
+                    break;
                 case MassSpecDataType.Unknown:
                     if (_pwizAvailable)
                     {
@@ -116,6 +119,8 @@ namespace InformedProteomics.Backend.MassSpecData
             {
                 return MassSpecDataType.DeconvolutedPbfFile;
             }
+            if (pathLower.EndsWith(".d"))
+                return MassSpecDataType.AgilentD;
 
             return MassSpecDataType.Unknown;
         }

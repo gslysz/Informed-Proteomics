@@ -117,10 +117,11 @@ namespace PbfGen
                     else
                     {
                         // Look for .raw and .mzML files
-                        ConsoleMsgUtils.ShowDebug("Looking for .raw and .mzML files in directory " + inputDirectory.FullName);
+                        ConsoleMsgUtils.ShowDebug("Looking for .raw, .mzML, and .d datafiles in directory " + inputDirectory.FullName);
 
                         specFilePaths.AddRange(Directory.GetFiles(inputDirectory.FullName, "*.raw"));
                         specFilePaths.AddRange(Directory.GetFiles(inputDirectory.FullName, "*.mzML"));
+                        specFilePaths.AddRange(Directory.GetDirectories(inputDirectory.FullName, "*.d"));
 
                         if (specFilePaths.Count == 0)
                         {

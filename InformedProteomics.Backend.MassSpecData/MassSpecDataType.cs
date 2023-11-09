@@ -30,5 +30,6 @@
         /// Other source file, read with ProteoWizard if DLLs are available
         /// </summary>
         Unknown,
+        AgilentD
     }
 }
