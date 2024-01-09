@@ -129,6 +129,42 @@ namespace InformedProteomics.Tests.FunctionalTests
 
         }
 
+
+
+        [Test]
+        public void TestReadAllSpectraFromAgilent2()
+        {
+            //contains only profile mode data
+            string datasetFilePath = @"D:\Projects\Project1\Data\06_MAM\MAM_Data_11\Ref_MSMS.d";
+
+            string pbfFilePath = datasetFilePath.Replace(".d", ".pbf");
+
+            if (File.Exists(pbfFilePath))
+                File.Delete(pbfFilePath);
+
+            var reader = MassSpecDataReaderFactory.GetMassSpecDataReader(datasetFilePath);
+            var progress = new Progress<ProgressData>(p =>
+            {
+            });
+
+            progress.ProgressChanged += OnProgressChanged;
+
+            const double precursorSignalToNoiseRatioThreshold = 0.0;
+            const double productSignalToNoiseRatioThreshold = 0.0;
+            const bool keepDataReaderOpen = false;
+
+            var startScan = 950;
+            var stopScan = 960;
+
+            var run = new PbfLcMsRun(
+                datasetFilePath, reader, pbfFilePath,
+                precursorSignalToNoiseRatioThreshold, productSignalToNoiseRatioThreshold,
+                progress, keepDataReaderOpen, startScan, stopScan);
+
+            Assert.IsTrue(File.Exists(pbfFilePath));
+        }
+
+
         private void OnProgressChanged(object sender, ProgressData e)
         {
             Console.WriteLine($"Progress:  {e.Percent} - {e.Status}");

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Agilent.MassSpectrometry.DataAnalysis;
+using Agilent.MassSpectrometry.MIDAC;
 using InformedProteomics.Backend.Data.Spectrometry;
 using PSI_Interface.CV;
 using Spectrum = InformedProteomics.Backend.Data.Spectrometry.Spectrum;
@@ -47,6 +48,8 @@ namespace InformedProteomics.Backend.MassSpecData
             FileFormatVersion = GetFileFormatVersion();
 
             FilePath = dataFilePath;
+
+            _agilentMsPeakFinder = new FindPeaksMS();
         }
 
         #endregion
@@ -108,10 +111,32 @@ namespace InformedProteomics.Backend.MassSpecData
 
             IPSetExtractSpectrum pset = new PSetExtractSpectrum();
             pset.ScanIds = new List<int> { scanId };
-            pset.DesiredMSStorage = DesiredMSStorageType.Peak;
+            pset.DesiredMSStorage = DesiredMSStorageType.PeakElseProfile;
 
+            
             var massSpectrum = _dataAccess.ReadSpectrum(pset).FirstOrDefault() as IMassSpectrum;
-            var peaks = ConvertMassSpectrumToSpectralPeaks(massSpectrum);
+
+            var storageMode = massSpectrum.Description.MSDetails.MSStorageMode;
+
+            List<Peak> peaks;
+            if (storageMode == MSStorageMode.ProfileSpectrum && msLevel == 1)
+            {
+                var findPeaksMsParameters = new FindPeaksMSParameters();
+                findPeaksMsParameters.PeakFilterParameters = new PSetMSPeakFilter();
+
+                findPeaksMsParameters.TOFParameters = new PSetTofPeakFinder();
+                findPeaksMsParameters.TOFParameters.DoRestrictXRange = true;
+                findPeaksMsParameters.TOFParameters.RestrictedXRange = new MinMaxRange(200, 2000);
+
+                _agilentMsPeakFinder.FindPeaks(massSpectrum, findPeaksMsParameters, out var peakList);
+                peaks = peakList.Peaks.Select(p => new Peak(p.CenterX, p.Height)).ToList();
+
+            }
+            else
+            {
+                peaks = ConvertMassSpectrumToSpectralPeaks(massSpectrum);
+            }
+
             var nativeIdString = $"scanId={scanId}";
 
             if (msLevel == 1)
@@ -210,6 +235,7 @@ namespace InformedProteomics.Backend.MassSpecData
         
         
         private string _srcFileChecksum;
+        private readonly IFindPeaks _agilentMsPeakFinder;
     }
 
     public class ScanInfoAdapter
